@@ -1,3 +1,3 @@
-global.items = [{name: "test", price:1.99}]
+global.items = []
 
 module.exports = items

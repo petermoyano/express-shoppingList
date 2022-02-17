@@ -29,7 +29,7 @@ router.post("/", (req, res, next) => {
             }
         }
         items.push(req.body);
-        return res.send(({ added: req.body }));
+        return res.status(201).json(({ added: req.body }));
     }
     catch (err) {
         return next(err)
