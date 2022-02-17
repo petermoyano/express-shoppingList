@@ -2,4 +2,4 @@
 when I import app into the tests files, thus enablig supertest to run its own server for testing */
 
 const app = require("./app");
-app.listen(3000, function(){console.log("App on port 3000")});
+app.listen(3000, function () { console.log("App on port 3000") });
