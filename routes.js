@@ -14,71 +14,84 @@ Here is what a response looks like:
 [{“name”: “popsicle”, “price”: 1.45}, {“name”:”cheerios”, “price”: 3.40}]*/
 router.get("/", (req, res, next) => {
     return res.json(items);
-
 })
 
 
-/* POST /items - this route should accept JSON data and add it to the shopping list.
-Here is what a sample request/response looks like:
-{“name”:”popsicle”, “price”: 1.45} => {“added”: {“name”: “popsicle”, “price”: 1.45}} */
+/* Custom error when item is not complete or already exists */
 router.post("/", (req, res, next) => {
-    items.push(req.body);
-    return res.send(({added: req.body}));
-    })
-
+    try {
+        if (!req.body.name || !req.body.price) {
+            throw new ExpressError("Item must have a valid name and price", 400)
+        }
+        for (let item of items) {
+            if (req.body.name === item.name) {
+                throw new ExpressError("Item already exists.", 400)
+            }
+        }
+        items.push(req.body);
+        return res.send(({ added: req.body }));
+    }
+    catch (err) {
+        return next(err)
+    }
+})
+/* Custom error for item not found */
 router.get("/:name", (req, res, next) => {
     let name = req.params.name;
-    for(let item of items){
-        if(item.name === name){
-            return res.json(item)
+    try {
+        for (let item of items) {
+            if (item.name === name) {
+                return res.json(item)
+            }
         }
+        throw new ExpressError("Item not found.", 404);
     }
-    return res.send("Item not found!");
+    catch (err) {
+        return next(err);
+    }
+
 
 })
 
 
-/* GET /items/:name - this route should display a single item’s name and price.
-Here is what a sample response looks like:
-
-{“name”: “popsicle”, “price”: 1.45} */
-
-
-
-/* PATCH /items/:name, this route should modify a single item’s name and/or price.
-Here is what a sample request/response looks like:
-{“name”:”new popsicle”, “price”: 2.45} => {“updated”: {“name”: “new popsicle”, “price”: 2.45}} */
-
+/* Custom errors for editing an item with a name that already exists, and editing an item that doesn't exists */
 router.patch("/:name", (req, res, next) => {
-    let name = req.params.name;
-    for(let item of items){
-        if(item.name === name){
-            item.name = req.body.name;
-            item.price = req.body.price;
-            return res.json({updated: item})
+    try {
+        let newName = req.body.name;
+        for (let item of items) {
+            if (item.name === newName) {
+                throw new ExpressError("An item with that name already exists", 400);
+            }
         }
+        let name = req.params.name;
+        for (let item of items) {
+            if (item.name === name) {
+                item.name = req.body.name;
+                item.price = req.body.price;
+                return res.json({ updated: item })
+            }
+        }
+        throw new ExpressError("Item not found. To create a new element use a POST request", 404);
     }
-    return res.send("Item not found!");
-
+    catch (err) {
+        return next(err);
+    }
 })
 
-
-/* DELETE /items/:name - this route should allow you to delete a specific item from the array.
-
-Here is what a sample response looks like:
-
-{message: “Deleted”} */
-
+/* Custom error for item not found */
 router.delete("/:name", (req, res, next) => {
     let name = req.params.name;
-    for(let item of items){
-        if(item.name === name){
-            let idx = items.indexOf(item);
-            items.splice(idx, 1);
-            return res.json({message:"Deleted"})
+    try {
+        for (let item of items) {
+            if (item.name === name) {
+                let idx = items.indexOf(item);
+                items.splice(idx, 1);
+                return res.json({ message: "Deleted" })
+            }
         }
+        throw new ExpressError("Item not found.", 404)
+    } catch (err) {
+        return next(err)
     }
-    return res.send("Item not found!");
-
 })
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express');
 const appRoutes = require("./routes");
-const expressError = require("./expressError");
+const ExpressError = require('./expressError');
 
 /* Initialize express */
 const app = express();
@@ -11,6 +11,13 @@ app.use(express.json());
 
 /* Apply a prefix of "items" to every route, and adds the route handlers in appRoutes to app  */
 app.use('/items', appRoutes);
+
+/* Catch not found routes and pass the error to the Global Error Handler */
+app.use((req, res, next) => {
+    const notFoundError = new ExpressError("Not Found", 404);
+    return next(notFoundError);
+})
+
 
 /* Global Error Handler.*/
 app.use((err, req, res, next) => {
